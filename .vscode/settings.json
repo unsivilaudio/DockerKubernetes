@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": "file:///home/webdev/DockerKubernetes/06-production_workflow/frontend/.github/workflows/deploy.yaml"
+    }
+}
