@@ -1,3 +1,4 @@
+const redis = require('resdis');
 const keys = require('./keys');
 
 const redisClient = redis.createClient({
