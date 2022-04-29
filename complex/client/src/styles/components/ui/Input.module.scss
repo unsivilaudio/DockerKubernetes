@@ -1,0 +1,18 @@
+.Input {
+    outline: none;
+    border: none;
+    background: var(--input-color-bg);
+    color: var(--input-color-fg);
+    padding: 0.5rem 1.5rem;
+    border-radius: 1rem;
+    transition: box-shadow 0.3s ease;
+
+    &:focus-within {
+        box-shadow: 0 0 5px 1px rgba(42, 135, 222, 0.7);
+    }
+
+    &[disabled] {
+        background: #ccc;
+        color: #777;
+    }
+}

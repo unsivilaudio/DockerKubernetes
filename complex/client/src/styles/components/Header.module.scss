@@ -1,0 +1,39 @@
+.Header {
+    text-align: center;
+    position: relative;
+    width: 100%;
+    padding: 1.2rem 3rem;
+    background: rgba(61, 41, 79, 0.7);
+
+    p {
+        position: relative;
+        background: rgba(0, 0, 0, 0.35);
+        font-size: 3.5rem;
+        line-height: 1.5;
+        font-weight: 100;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        z-index: 10;
+    }
+
+    .FibImg {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+
+        .Img {
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkudxsrhQKlbDIY_MGhILhNkH_S3yuYSDYjA&usqp=CAU');
+            background-repeat: repeat-x;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 100%;
+            width: 100%;
+            opacity: 0.2;
+        }
+    }
+}
