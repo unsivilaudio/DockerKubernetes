@@ -1,0 +1,39 @@
+name: Deploy MultiDocker
+on:
+  push:
+    branches:
+      - "master"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: docker build -t unsivilaudio/react-test -f ./client/Dockerfile.dev ./client
+      - run: docker run -e CI=true unsivilaudio/react-test npm test
+
+      - run: docker build -t unsivilaudio/multi-client-04-29 ./client
+      - run: docker build -t unsivilaudio/multi-nginx-04-29 ./nginx
+      - run: docker build -t unsivilaudio/multi-server-04-29 ./server
+      - run: docker build -t unsivilaudio/multi-worker-04-29 ./worker
+
+      - run: docker push unsivilaudio/multi-client-04-29
+      - run: docker push unsivilaudio/multi-nginx-04-29
+      - run: docker push unsivilaudio/multi-server-04-29
+      - run: docker push unsivilaudio/multi-worker-04-29
+
+      - name: Generate deployment package
+        run: zip -r deploy.zip . -x '*.git*'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v18
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+          application_name: fibonacci-multi
+          environment_name: Fibonaccimulti-env
+          existing_bucket_name: elasticbeanstalk-us-west-2-015257462975
+          region: us-west-2
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
