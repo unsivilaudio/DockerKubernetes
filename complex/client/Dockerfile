@@ -3,9 +3,9 @@ FROM node:17-alpine as builder
 USER node
 RUN mkdir -p /home/node/app
 WORKDIR '/home/node/app'
-COPY --chown=node:node ./package.json ./home/node/app
+COPY --chown=node:node ./package.json ./
 RUN npm install
-COPY ./ ./home/node/app
+COPY ./ ./
 RUN npm run build
 
 FROM nginx
