@@ -1,4 +1,4 @@
-const redis = require('resdis');
+const redis = require('redis');
 const keys = require('./keys');
 
 const redisClient = redis.createClient({

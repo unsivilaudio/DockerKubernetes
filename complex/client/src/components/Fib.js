@@ -6,20 +6,26 @@ import Button from 'components/ui/Button';
 import classes from 'styles/components/Fib.module.scss';
 
 const Fib = props => {
-    const [seenIndexes, setSeenIndexes] = useState([10, 5, 7]);
+    const [seenIndexes, setSeenIndexes] = useState([]);
     const [index, setIndex] = useState(null);
-    const [values, setValues] = useState({ 7: 21, 10: 89, 5: 8 });
+    const [values, setValues] = useState({});
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const fetchValues = () => axios.get('/api/values/currrent');
+        const fetchValues = () => axios.get('/api/values/current');
         fetchValues()
-            .then(res => setValues(res.data))
+            .then(res => {
+                console.log('values: ', res.data);
+                setValues(res.data);
+            })
             .catch(err => console.log(err.message));
 
         const fetchIndexes = () => axios.get('/api/values/all');
         fetchIndexes()
-            .then(res => setSeenIndexes(res.data))
+            .then(res => {
+                console.log('indexes: ', res.data);
+                setSeenIndexes(res.data);
+            })
             .catch(err => console.log(err.message));
     }, []);
 
@@ -35,7 +41,7 @@ const Fib = props => {
                 index,
             })
             .then(_ => {
-                setSeenIndexes(st => [...st, index]);
+                setSeenIndexes(st => [...st, { number: index }]);
                 setIndex(null);
             })
             .catch(err => console.log(err.message))
@@ -46,8 +52,8 @@ const Fib = props => {
 
     const allIndices = seenIndexes.map((val, i) => {
         return (
-            <span key={`${i}-${val}`} className={classes.Item}>
-                {val}
+            <span key={`${i}-${val.number}`} className={classes.Item}>
+                {val.number}
             </span>
         );
     });
