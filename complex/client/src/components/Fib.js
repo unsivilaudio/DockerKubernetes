@@ -24,10 +24,47 @@ const Fib = props => {
         fetchIndexes()
             .then(res => {
                 console.log('indexes: ', res.data);
-                setSeenIndexes(res.data);
+                setSeenIndexes(
+                    [...new Set(res.data.map(num => num.number))].map(
+                        number => ({
+                            number,
+                        })
+                    )
+                );
             })
             .catch(err => console.log(err.message));
     }, []);
+
+    useEffect(() => {
+        let polling;
+        if (!polling && seenIndexes.length > Object.values(values).length) {
+            polling = setInterval(async () => {
+                await axios
+                    .get('/api/values/current')
+                    .then(res => {
+                        console.log(
+                            Object.values(res.data).length,
+                            seenIndexes.length
+                        );
+                        setValues(res.data);
+                    })
+                    .catch(err => {
+                        clearInterval(polling);
+                        polling = null;
+                    });
+            }, 5 * 1000);
+        }
+
+        if (seenIndexes.length === Object.values(values).length) {
+            setLoading(false);
+            clearInterval(polling);
+            polling = null;
+        }
+
+        return () => {
+            clearInterval(polling);
+        };
+    }, [values, seenIndexes]);
 
     function handleChangeIndex(e) {
         setIndex(Number(e.target.value));
@@ -35,6 +72,10 @@ const Fib = props => {
 
     function handleSubmitIndex() {
         if (isNaN(index)) return;
+        if (seenIndexes.find(val => val.number === index)) {
+            setIndex('');
+            return;
+        }
         setLoading(true);
         axios
             .post('/api/values', {
@@ -44,8 +85,8 @@ const Fib = props => {
                 setSeenIndexes(st => [...st, { number: index }]);
                 setIndex(null);
             })
-            .catch(err => console.log(err.message))
-            .finally(() => {
+            .catch(err => {
+                console.log(err.message);
                 setLoading(false);
             });
     }
