@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: server
+  template:
+    metadata:
+      labels:
+        component: server
+    spec:
+      containers:
+        - name: server
+          image: unsivilaudio/multi-server
+          env:
+            - name: REDIS_HOST
+              value: redis-cluster-ip-svc
+            - name: REDIS_PORT
+              value: '6379'
+            - name: PGHOST
+              value: postgres-cluster-ip-svc
+            - name: PGPORT
+              value: '5432'
+            - name: PGDATABASE
+              value: 'postgres'
+            - name: PGUSER
+              value: 'postgres'
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-cluster-ip-svc
+spec:
+  type: ClusterIP
+  selector:
+    component: server
+  ports:
+    - name: server
+      protocol: TCP
+      port: 3000
+      targetPort: 3000

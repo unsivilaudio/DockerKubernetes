@@ -1,0 +1,14 @@
+## Default config
+tabWidth: 4
+printWidth: 120
+semi: true
+singleQuote: true
+
+## File specific config
+overrides:
+    - files:
+          - '*.yaml'
+          - '*.yml'
+          - '.prettierrc'
+      options:
+          tabWidth: 2

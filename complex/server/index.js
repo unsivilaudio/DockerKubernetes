@@ -9,6 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+console.log('keys', keys);
+
 // Postgres setup
 const pgClient = new Pool({
     user: keys.pgUser,
@@ -17,10 +19,8 @@ const pgClient = new Pool({
     password: keys.pgPassword,
     port: keys.pgPort,
 });
-pgClient.on('connect', client => {
-    client
-        .query('CREATE TABLE IF NOT EXISTS values (number INT)')
-        .catch(err => console.error(err));
+pgClient.on('connect', (client) => {
+    client.query('CREATE TABLE IF NOT EXISTS values (number INT)').catch((err) => console.error(err));
 });
 
 // Redis setup
@@ -63,4 +63,4 @@ app.post('/values', async (req, res) => {
     res.send({ working: true });
 });
 
-app.listen(5000, console.log.bind(null, 'Listening'));
+app.listen(3000, console.log.bind(null, 'Listening'));
