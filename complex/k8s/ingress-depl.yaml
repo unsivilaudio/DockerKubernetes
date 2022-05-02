@@ -11,13 +11,6 @@ spec:
     - host: tix.dev
       http:
         paths:
-          - path: /(api/.*)/$
-            pathType: Prefix
-            backend:
-              service:
-                name: server-cluster-ip-svc
-                port:
-                  number: 3000
           - path: /api/?(.*)
             pathType: Prefix
             backend:
