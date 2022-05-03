@@ -1,39 +1,62 @@
-name: Deploy MultiDocker
+name: Deploy MultK8s
 on:
   push:
     branches:
-      - "master"
+      - 'master'
+
+env:
+  SHA: $(git rev-parse HEAD)
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t unsivilaudio/react-test -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true unsivilaudio/react-test npm test
+      - uses: actions/checkout@v3
+      - name: test
+        run: |-
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t unsivilaudio/react-test -f ./client/Dockerfile.dev ./client
+          docker run -e CI=true unsivilaudio/react-test npm test
 
-      - run: docker build -t unsivilaudio/multi-client-04-29 ./client
-      - run: docker build -t unsivilaudio/multi-nginx-04-29 ./nginx
-      - run: docker build -t unsivilaudio/multi-server-04-29 ./server
-      - run: docker build -t unsivilaudio/multi-worker-04-29 ./worker
-
-      - run: docker push unsivilaudio/multi-client-04-29
-      - run: docker push unsivilaudio/multi-nginx-04-29
-      - run: docker push unsivilaudio/multi-server-04-29
-      - run: docker push unsivilaudio/multi-worker-04-29
-
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
-
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v18
+      - name: Set Service Key
+        uses: 'google-github-actions/auth@v0'
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: fibonacci-multi
-          environment_name: Fibonaccimulti-env
-          existing_bucket_name: elasticbeanstalk-us-west-2-015257462975
-          region: us-west-2
-          version_label: ${{ github.sha }}
-          deployment_package: deploy.zip
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: Set Project
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: multi-338920
+
+      - name: Auth
+        run: |-
+          gcloud --quiet auth configure-docker
+
+      - name: Get Credentials
+        uses: google-github-actions/get-gke-credentials@v0
+        with:
+          cluster_name: multi-cluster
+          location: us-west2-a
+
+      - name: Build
+        run: |-
+          docker build -t unsivilaudio/multi-client:latest -t unsivilaudio/multi-client:${{ env.SHA }} -f ./client/Dockerfile ./client
+          docker build -t unsivilaudio/multi-server:latest -t unsivilaudio/multi-server:${{ env.SHA }} -f ./server/Dockerfile ./server
+          docker build -t unsivilaudio/multi-worker:latest -t unsivilaudio/multi-worker:${{ env.SHA }} -f ./worker/Dockerfile ./worker
+
+      - name: Push
+        run: |-
+          docker push unsivilaudio/multi-client:latest
+          docker push unsivilaudio/multi-server:latest
+          docker push unsivilaudio/multi-worker:latest
+
+          docker push unsivilaudio/multi-client:${{ env.SHA }}
+          docker push unsivilaudio/multi-server:${{ env.SHA }}
+          docker push unsivilaudio/multi-worker:${{ env.SHA }}
+
+      - name: Apply
+        run: |-
+          kubectl apply -f k8s
+          kubectl set image deployments/server-depl server=unsivilaudio/multi-server:${{ env.SHA }}
+          kubectl set image deployments/worker-depl worker=unsivilaudio/multi-worker:${{ env.SHA }}
+          kubectl set image deployments/client-depl client=unsivilaudio/multi-client:${{ env.SHA }}

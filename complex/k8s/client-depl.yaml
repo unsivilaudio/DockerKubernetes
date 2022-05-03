@@ -17,6 +17,9 @@ spec:
           image: unsivilaudio/multi-client
           ports:
             - containerPort: 3000
+          env:
+            - name: WDS_SOCKET_PORT
+              value: '0'
 ---
 apiVersion: v1
 kind: Service
